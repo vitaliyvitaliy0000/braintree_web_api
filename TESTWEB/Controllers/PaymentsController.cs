@@ -1,6 +1,10 @@
 ﻿using Braintree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
 using System.Web.Http;
 using TESTWEB.Models;
 
@@ -9,6 +13,62 @@ namespace TESTWEB.Controllers
     [RoutePrefix("payments")]
     public class PaymentsController : ApiController
     {
+        [HttpPost]
+        [Route("uploadimage")]
+        public string UploadImage(UploadImageRequest request)
+        {
+            var imgByteArray = Base64Decode(request.Base64Image);
+
+            using (var canvas = new Bitmap(new MemoryStream(imgByteArray)))
+            {
+                float onePercentOfWidth = canvas.Width * 1.0F / 100;
+                float onePercentOfHeight = canvas.Height * 1.0F / 100;
+
+                int width = Convert.ToInt32(request.WidthPercent * onePercentOfWidth);
+                int height = Convert.ToInt32(request.HeightPercent * onePercentOfHeight);
+
+                int x = 0;
+                int y = 0;
+                if (request.HorizontalClipAlign == HorizontalClipAlign.Center)
+                {
+                    x = canvas.Width / 2 - width / 2;
+                }
+                else if (request.HorizontalClipAlign == HorizontalClipAlign.End)
+                {
+                    x = canvas.Width - width;
+                }
+
+                if (request.VerticalClipAlign == VerticalClipAlign.Center)
+                {
+                    y = canvas.Height / 2 - height / 2;
+                }
+                else if (request.VerticalClipAlign == VerticalClipAlign.End)
+                {
+                    y = canvas.Height - height;
+                }
+
+                var cropRect = new Rectangle(x, y, width, height);
+                using (var newCanvas = canvas.Clone(cropRect, canvas.PixelFormat))
+                {
+                    var converter = new ImageConverter();
+                    var imgByteArr = (byte[])converter.ConvertTo(newCanvas, typeof(byte[]));
+                    var base64Image = Base64Encode(imgByteArr);
+
+                    return base64Image;
+                }
+            }
+        }
+
+        private byte[] Base64Decode(string dataStr)
+        {
+            return Convert.FromBase64String(dataStr);
+        }
+
+        private string Base64Encode(byte[] data)
+        {
+            return Convert.ToBase64String(data);
+        }
+
         [HttpPost]
         [Route("braintree")]
         public BraintreeResponse BrainTreeRequest(BraintreeRequest brainTreeRequest)

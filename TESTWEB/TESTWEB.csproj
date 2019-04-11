@@ -170,6 +170,7 @@
     <Compile Include="Models\BraintreeRequest.cs" />
     <Compile Include="Models\BraintreeResponse.cs" />
     <Compile Include="Models\BraintreeValidationError.cs" />
+    <Compile Include="Models\UploadImageRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
